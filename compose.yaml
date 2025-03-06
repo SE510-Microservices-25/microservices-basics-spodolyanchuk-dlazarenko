@@ -1,9 +1,25 @@
 services:
+  postgres:
+    image: postgres:15
+    container_name: PostgresDb
+    restart: always
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5432:5432"
   microserviceapplication:
     image: microserviceapplication
     build:
       context: .
       dockerfile: MicroserviceApplication/Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=myuser;Password=mypassword;
     ports:
       - "8080:8080"
       - "8081:8081"  
+    command: >
+      sh -c "sleep 10 && dotnet ef database update && dotnet run"
