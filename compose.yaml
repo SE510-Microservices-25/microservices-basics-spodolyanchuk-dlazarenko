@@ -1,25 +1,49 @@
 services:
-  postgres:
-    image: postgres:15
-    container_name: PostgresDb
-    restart: always
+  java-db:
+    image: postgres:latest
+    container_name: java-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: microservice
+    ports:
+      - "5440:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  java-microservice:
+    image: dmytrolazarenko/microservice:latest
+    container_name: java-microservice
+    ports:
+      - "8082:8080"
+    environment:
+      POSTGRES_URL: jdbc:postgresql://java-db:5432/microservice
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    depends_on:
+      - java-db
+
+  csharp-db:
+    image: postgres:latest
+    container_name: csharp-db
     environment:
       POSTGRES_DB: mydb
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
     ports:
       - "5432:5432"
-  microserviceapplication:
-    image: microserviceapplication
-    build:
-      context: .
-      dockerfile: MicroserviceApplication/Dockerfile
-    depends_on:
-      - postgres
-    environment:
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=myuser;Password=mypassword;
+
+  csharp-microservice:
+    image: serafymp/microservice-application:latest
+    container_name: csharp-microservice
     ports:
       - "8080:8080"
-      - "8081:8081"  
-    command: >
-      sh -c "sleep 10 && dotnet ef database update && dotnet run"
+      - "8081:8081"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=myuser;Password=mypassword;
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - csharp-db
+
+volumes:
+  pgdata:
