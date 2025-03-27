@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o k8s-manifests/
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: csharp-db
+  name: csharp-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: csharp-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s-manifests/
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: csharp-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: mydb
+            - name: POSTGRES_PASSWORD
+              value: mypassword
+            - name: POSTGRES_USER
+              value: myuser
+          image: postgres:latest
+          name: csharp-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: csharp-pgdata
+      restartPolicy: Always
+      volumes:
+        - name: csharp-pgdata
+          persistentVolumeClaim:
+            claimName: csharp-pgdata

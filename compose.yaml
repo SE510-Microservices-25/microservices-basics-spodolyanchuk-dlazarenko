@@ -9,10 +9,10 @@ services:
     ports:
       - "5440:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - java-pgdata:/var/lib/postgresql/data
 
   java-microservice:
-    image: dmytrolazarenko/microservice:latest
+    image: dmytrolazarenko/microservice:1.0.0
     container_name: java-microservice
     ports:
       - "8082:8080"
@@ -27,23 +27,26 @@ services:
     image: postgres:latest
     container_name: csharp-db
     environment:
-      POSTGRES_DB: mydb
+      POSTGRES_DB: polls
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
     ports:
       - "5432:5432"
+    volumes:
+      - csharp-pgdata:/var/lib/postgresql/data
 
   csharp-microservice:
-    image: serafymp/microservice-application:latest
+    image: serafymp/microservice-application:1.0.0
     container_name: csharp-microservice
     ports:
       - "8080:8080"
       - "8081:8081"
     environment:
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=myuser;Password=mypassword;
+      - ConnectionStrings__DefaultConnection=Host=csharp-db;Port=5432;Database=polls;Username=myuser;Password=mypassword;
       - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
       - csharp-db
 
 volumes:
-  pgdata:
+  java-pgdata:
+  csharp-pgdata:

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o k8s-manifests/
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: java-db
+  name: java-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: java-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s-manifests/
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: java-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: microservice
+            - name: POSTGRES_PASSWORD
+              value: password
+            - name: POSTGRES_USER
+              value: user
+          image: postgres:latest
+          name: java-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: java-pgdata
+      restartPolicy: Always
+      volumes:
+        - name: java-pgdata
+          persistentVolumeClaim:
+            claimName: java-pgdata

@@ -14,14 +14,18 @@ public class PollRepository : IPollRepository
     }
     public async Task<ICollection<Poll>> GetAllPollsAsync()
     {
-        var polls = await _db.Polls.ToListAsync();
+        var polls = await _db.Polls
+            .Include(p => p.Options)
+            .ToListAsync();
         
         return polls;
     }
 
     public async Task<Poll?> GetPollByIdAsync(uint id)
     {
-        var poll = await _db.Polls.FirstOrDefaultAsync(p => p.Id == id);
+        var poll = await _db.Polls
+            .Include(p => p.Options)
+            .FirstOrDefaultAsync(p => p.Id == id);
 
         return poll;
     }

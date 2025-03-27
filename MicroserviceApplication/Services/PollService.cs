@@ -16,15 +16,16 @@ public class PollService : IPollService
     public async Task<ICollection<PollDto>> GetAllPollsAsync()
     {
         var polls = await _repository.GetAllPollsAsync();
-
+        
         var pollDtos = polls.Select(pollOrigin => new PollDto()
         {
             Id = pollOrigin.Id,
             Question = pollOrigin.Question,
             UserId = pollOrigin.UserId,
             ExpirationDate = pollOrigin.ExpirationDate,
-            Options = pollOrigin.Options.Select(option => option.OptionText).ToList()
+            Options = pollOrigin.Options?.Select(option => option.OptionText).ToList() ?? new List<string>()
         }).ToList();
+
         
         return pollDtos;
     }
